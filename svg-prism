@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import os.path as Path
+
+import util
+
+
+class cons:
+    icon_name = 'ic_launcher'
+    icon_sizes = {
+    	'mdpi': 48,
+        'hdpi': 72,
+        'xhdpi': 96,
+        'xxhdpi': 144
+    }
+    input_path = 'asset-src/'
+    res_path = 'res/'  # /app/src/main/...
+
+
+def main(args):
+    cwd = os.getcwd()
+    input_path = Path.join(cwd, cons.input_path)
+    res_path = Path.join(cwd, cons.res_path)
+    if not Path.isdir(res_path):
+        print(res_path, 'not found! are you in the right dir?')
+        return -1
+    src_fname = Path.join(input_path, cons.icon_name+'.svg')
+    if not Path.isfile(src_fname):
+        print(src_fname, 'not found!')
+        return -1
+        
+    for name, size in cons.icon_sizes.items():
+        target_path = Path.join(res_path, 'drawable-'+name)
+        target_fname = Path.join(target_path, cons.icon_name+'.png')
+        
+        # print(target_fname)
+        
+        util.run_command( "inkscape -z -e '%s' -w %d -h %d '%s'" % (
+                                target_fname, size, size, src_fname ) )
+
+
+
+if __name__=='__main__':
+    sys.exit(main(sys.argv[1:]))
+

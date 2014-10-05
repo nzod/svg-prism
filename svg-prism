@@ -3,8 +3,16 @@
 import sys
 import os
 import os.path as Path
+import shlex
+import subprocess
 
-import util
+
+def run_command(cmd):
+   return subprocess.Popen(shlex.split(cmd),
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0]
+
+def replace_ext(fname, new_ext):
+    return fname[:-3]+new_ext
 
 
 class cons:
@@ -15,8 +23,47 @@ class cons:
         'xhdpi': 96,
         'xxhdpi': 144
     }
-    input_path = 'asset-src/'
+    #normal screen size: ~ 320dp x 480dp
+    densities = {
+        'mdpi': 160,
+        'hdpi': 240,
+        'xhdpi': 320,
+        'xxhdpi': 480
+    }
+    input_path = 'drawable-src/'
     res_path = 'res/'  # /app/src/main/...
+
+
+def action_icon(input_path, res_path):
+    src_fname = Path.join(input_path, cons.icon_name+'.svg')
+    if not Path.isfile(src_fname):
+        print(src_fname, 'not found!')
+        return -1
+        
+    for density_name, size in cons.icon_sizes.items():
+        target_path = Path.join(res_path, 'drawable-'+density_name)
+        target_fname = Path.join(target_path, cons.icon_name+'.png')
+        
+        # print(target_fname)
+        
+        util.run_command( "inkscape -z -e '%s' -w %d -h %d '%s'" % (
+                                target_fname, size, size, src_fname ) )
+        
+    return 0
+
+
+def action_drawable(input_path, res_path):
+    fnames = [a for a in os.listdir(input_path) \
+                if a.endswith('.svg') and a!=(cons.icon_name+'.svg') ]
+    for fname in fnames:
+        src_fname = Path.join(input_path, fname)
+        for density_name, dpi in cons.densities.items():
+            target_path = Path.join(res_path, 'drawable-'+density_name)
+            target_fname = Path.join(target_path, replace_ext(fname, 'png'))
+            
+            util.run_command("inkscape -z -e '%s' -d %d '%s'" % (
+                                target_fname, dpi/2, src_fname))
+    return 0
 
 
 def main(args):
@@ -26,20 +73,11 @@ def main(args):
     if not Path.isdir(res_path):
         print(res_path, 'not found! are you in the right dir?')
         return -1
-    src_fname = Path.join(input_path, cons.icon_name+'.svg')
-    if not Path.isfile(src_fname):
-        print(src_fname, 'not found!')
-        return -1
         
-    for name, size in cons.icon_sizes.items():
-        target_path = Path.join(res_path, 'drawable-'+name)
-        target_fname = Path.join(target_path, cons.icon_name+'.png')
-        
-        # print(target_fname)
-        
-        util.run_command( "inkscape -z -e '%s' -w %d -h %d '%s'" % (
-                                target_fname, size, size, src_fname ) )
-
+    if len(args)==0 or args[0]=='drawable':
+        return action_drawable(input_path, res_path)
+    elif args[0]=='icon':
+        return action_icon(input_path, res_path)
 
 
 if __name__=='__main__':

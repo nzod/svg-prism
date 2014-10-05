@@ -44,10 +44,8 @@ def action_icon(input_path, res_path):
         target_path = Path.join(res_path, 'drawable-'+density_name)
         target_fname = Path.join(target_path, cons.icon_name+'.png')
         
-        # print(target_fname)
-        
-        util.run_command( "inkscape -z -e '%s' -w %d -h %d '%s'" % (
-                                target_fname, size, size, src_fname ) )
+        run_command( "inkscape -z -e '%s' -w %d -h %d '%s'" % (
+                            target_fname, size, size, src_fname ) )
         
     return 0
 
@@ -61,7 +59,7 @@ def action_drawable(input_path, res_path):
             target_path = Path.join(res_path, 'drawable-'+density_name)
             target_fname = Path.join(target_path, replace_ext(fname, 'png'))
             
-            util.run_command("inkscape -z -e '%s' -d %d '%s'" % (
+            run_command("inkscape -z -e '%s' -d %d '%s'" % (
                                 target_fname, dpi/2, src_fname))
     return 0
 
